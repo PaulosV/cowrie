@@ -57,17 +57,22 @@ class HoneyPotSSHTransport(transport.SSHServerTransport, TimeoutMixin):
 
         self.transportId: str = uuid.uuid4().hex[:12]
         src_ip: str = self.transport.getPeer().host
+        dst_ip: str = self.transport.getHost().host
 
         ipv4_search = self.ipv4rex.search(src_ip)
         if ipv4_search is not None:
             src_ip = ipv4_search.group(1)
+
+        ipv4_search = self.ipv4rex.search(dst_ip)
+        if ipv4_search is not None:
+            dst_ip = ipv4_search.group(1)
 
         log.msg(
             eventid="cowrie.session.connect",
             format="New connection: %(src_ip)s:%(src_port)s (%(dst_ip)s:%(dst_port)s) [session: %(session)s]",
             src_ip=src_ip,
             src_port=self.transport.getPeer().port,
-            dst_ip=self.transport.getHost().host,
+            dst_ip=dst_ip,
             dst_port=self.transport.getHost().port,
             session=self.transportId,
             sessionno=f"S{self.transport.sessionno}",

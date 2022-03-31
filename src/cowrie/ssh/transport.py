@@ -35,6 +35,12 @@ class HoneyPotSSHTransport(transport.SSHServerTransport, TimeoutMixin):
     interactive_timeout: int = CowrieConfig.getint(
         "honeypot", "interactive_timeout", fallback=300
     )
+    reported_public_ip: str = CowrieConfig.get(
+        "honeypot", "reported_public_ip", fallback=None
+    )
+    reported_port: int = CowrieConfig.getint(
+        "ssh", "reported_port", fallback=None
+    )
     transport: Any
     outgoingCompression: Any
     _blockedByKeyExchange: Any
@@ -72,8 +78,8 @@ class HoneyPotSSHTransport(transport.SSHServerTransport, TimeoutMixin):
             format="New connection: %(src_ip)s:%(src_port)s (%(dst_ip)s:%(dst_port)s) [session: %(session)s]",
             src_ip=src_ip,
             src_port=self.transport.getPeer().port,
-            dst_ip=dst_ip,
-            dst_port=self.transport.getHost().port,
+            dst_ip=self.reported_public_ip or dst_ip,
+            dst_port=self.reported_port or self.transport.getHost().port,
             session=self.transportId,
             sessionno=f"S{self.transport.sessionno}",
             protocol="ssh",
